@@ -1,0 +1,120 @@
+{
+  "project_info": {
+    "title": "Football Analytics API: A Comprehensive Premier League Data Analysis Platform",
+    "created": 1775133772.2144618,
+    "last_updated": 1775134613.9174747,
+    "total_slides": 9
+  },
+  "slides": [
+    {
+      "id": "slide_1",
+      "state": "edited",
+      "pageNum": 1
+    },
+    {
+      "id": "slide_2",
+      "state": "edited",
+      "pageNum": 2
+    },
+    {
+      "id": "slide_3",
+      "state": "edited",
+      "pageNum": 3
+    },
+    {
+      "id": "slide_4",
+      "state": "edited",
+      "pageNum": 4
+    },
+    {
+      "id": "slide_5",
+      "state": "edited",
+      "pageNum": 5
+    },
+    {
+      "id": "slide_6",
+      "state": "edited",
+      "pageNum": 6
+    },
+    {
+      "id": "slide_7",
+      "state": "edited",
+      "pageNum": 7
+    },
+    {
+      "id": "slide_8",
+      "state": "edited",
+      "pageNum": 8
+    },
+    {
+      "id": "slide_9",
+      "state": "edited",
+      "pageNum": 9
+    }
+  ],
+  "outline": [
+    {
+      "id": "slide_1",
+      "title": "Football Analytics API: A Comprehensive Premier League Data Analysis Platform",
+      "summary": "Title slide introducing the Football Analytics API project for XJCO3011 Coursework 1.",
+      "image_plan": "Use a suitable image if needed",
+      "slide_template_key": ""
+    },
+    {
+      "id": "slide_2",
+      "title": "Real-Time Analysis of 380 Premier League Matches Across 20 Teams",
+      "summary": "Overview of the API's dataset, core functionality, and target users.",
+      "image_plan": "Use a suitable image if needed",
+      "slide_template_key": ""
+    },
+    {
+      "id": "slide_3",
+      "title": "High Performance with Minimal Infrastructure: FastAPI + SQLAlchemy + SQLite",
+      "summary": "Details the technology stack chosen for the project and the rationale behind each choice.",
+      "image_plan": "Use a suitable image if needed",
+      "slide_template_key": ""
+    },
+    {
+      "id": "slide_4",
+      "title": "Layered Architecture Ensures Clean Separation of Concerns Across 5 Modules",
+      "summary": "Explains the modular architecture, database schema, API versioning, and data flow.",
+      "image_plan": "Use a suitable image if needed",
+      "slide_template_key": ""
+    },
+    {
+      "id": "slide_5",
+      "title": "Five Analytics Endpoints Transform Raw Match Data Into Actionable Insights",
+      "summary": "Highlights the five advanced analytics endpoints: League Table, Team Performance, Player Rankings, Head-to-Head, and Season Summary.",
+      "image_plan": "Use a suitable image if needed",
+      "slide_template_key": ""
+    },
+    {
+      "id": "slide_6",
+      "title": "Version Control Practices Demonstrate Consistent Development Workflow",
+      "summary": "Describes the GitHub repository structure, commit strategy, and documentation practices.",
+      "image_plan": "Use a suitable image if needed",
+      "slide_template_key": ""
+    },
+    {
+      "id": "slide_7",
+      "title": "45 Automated Tests Achieve Comprehensive Coverage Across All Endpoints",
+      "summary": "Details the testing strategy using pytest, covering authentication, CRUD operations, analytics, and error handling.",
+      "image_plan": "Use a suitable image if needed",
+      "slide_template_key": ""
+    },
+    {
+      "id": "slide_8",
+      "title": "Key Challenges Overcome and Lessons Learned During Development",
+      "summary": "Discusses challenges faced (bcrypt compatibility, complex aggregation, test isolation), future improvements, and GenAI usage.",
+      "image_plan": "Use a suitable image if needed",
+      "slide_template_key": ""
+    },
+    {
+      "id": "slide_9",
+      "title": "Thank You — Questions Welcome",
+      "summary": "Closing slide summarizing the project's achievements and providing key links for further discussion.",
+      "image_plan": "Use a suitable image if needed",
+      "slide_template_key": ""
+    }
+  ]
+}

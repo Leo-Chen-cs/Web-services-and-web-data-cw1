@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600&family=Inter:wght@400&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        .slide-container {
+            width: 1280px;
+            min-height: 720px;
+            background-color: #F4F4F5;
+            font-family: 'Inter', sans-serif;
+            color: #3F3F46;
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            grid-template-rows: 80px 1fr;
+            position: relative;
+            overflow: hidden;
+        }
+        .grid-line-v { position: absolute; top: 0; bottom: 0; width: 1px; background-color: rgba(63, 63, 70, 0.1); z-index: 1; }
+        .grid-line-h { position: absolute; left: 0; right: 0; height: 1px; background-color: rgba(63, 63, 70, 0.1); z-index: 1; }
+        .slide-header {
+            grid-column: 1 / 13;
+            grid-row: 1 / 2;
+            border-bottom: 1px solid #3F3F46;
+            background-color: #ffffff;
+            display: flex;
+            align-items: center;
+            padding: 0 40px;
+            z-index: 10;
+        }
+        .header-path { font-family: 'Space Grotesk', monospace; font-size: 20px; color: #2563EB; margin-right: 15px; }
+        .header-title { font-family: 'Space Grotesk', monospace; font-size: 32px; font-weight: 600; color: #18181B; }
+        .content-area {
+            grid-column: 1 / 13;
+            grid-row: 2 / 3;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            padding: 28px; /* reduced from 40px to save vertical space */
+            gap: 24px; /* slightly reduced gap */
+            z-index: 10;
+        }
+        .info-column { background-color: #ffffff; border: 1px solid #3F3F46; display: flex; flex-direction: column; position: relative; }
+        .column-header { background-color: #18181B; color: white; padding: 15px 20px; font-family: 'Space Grotesk', monospace; font-size: 22px; font-weight: 600; display: flex; align-items: center; border-bottom: 1px solid #3F3F46; }
+        .column-header i { margin-right: 12px; color: #059669; }
+        .column-content { padding: 16px; flex: 1; display: flex; flex-direction: column; gap: 16px; }
+        .item-block { position: relative; padding-left: 20px; border-left: 2px dashed #2563EB; }
+        .item-title { font-family: 'Space Grotesk', monospace; font-size: 18px; font-weight: 600; color: #18181B; margin-bottom: 8px; }
+        .item-desc { font-size: 16px; line-height: 1.5; color: #3F3F46; }
+        .code-tag { font-family: 'Space Grotesk', monospace; background-color: rgba(63, 63, 70, 0.1); padding: 2px 6px; border: 1px solid rgba(63, 63, 70, 0.2); font-size: 14px; }
+        .highlight-green { background-color: #059669; color: white; padding: 2px 8px; font-family: 'Space Grotesk', monospace; font-weight: 600; display: inline-block; margin-bottom: 12px; }
+        .stat-row { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(63, 63, 70, 0.1); padding-bottom: 8px; margin-bottom: 8px; font-family: 'Space Grotesk', monospace; font-size: 16px; }
+        .stat-row:last-child { border-bottom: none; margin-bottom: 0; }
+        .stat-label { color: #3F3F46; }
+        .stat-value { color: #2563EB; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+        <div class="grid-line-v" style="left: 8.33%;"></div>
+        <div class="grid-line-v" style="left: 16.66%;"></div>
+        <div class="grid-line-v" style="left: 25%;"></div>
+        <div class="grid-line-v" style="left: 33.33%;"></div>
+        <div class="grid-line-v" style="left: 41.66%;"></div>
+        <div class="grid-line-v" style="left: 50%;"></div>
+        <div class="grid-line-v" style="left: 58.33%;"></div>
+        <div class="grid-line-v" style="left: 66.66%;"></div>
+        <div class="grid-line-v" style="left: 75%;"></div>
+        <div class="grid-line-v" style="left: 83.33%;"></div>
+        <div class="grid-line-v" style="left: 91.66%;"></div>
+        <div class="grid-line-h" style="top: 20%;"></div>
+        <div class="grid-line-h" style="top: 40%;"></div>
+        <div class="grid-line-h" style="top: 60%;"></div>
+        <div class="grid-line-h" style="top: 80%;"></div>
+        <div class="slide-header">
+            <span class="header-path">~/retrospective/</span>
+            <h1 class="header-title">Key Challenges Overcome and Lessons Learned During Development</h1>
+        </div>
+        <div class="content-area">
+            <div class="info-column">
+                <div class="column-header">
+                    <i class="fas fa-exclamation-triangle"></i> Technical Challenges
+                </div>
+                <div class="column-content">
+                    <div class="item-block">
+                        <div class="item-title">bcrypt Compatibility</div>
+                        <div class="item-desc">
+                            Encountered a <span class="code-tag">ValueError</span> due to incompatibility between <span class="code-tag">passlib</span> and <span class="code-tag">bcrypt&gt;=4.1.0</span>. Resolved by pinning dependency to <span class="code-tag">4.0.1</span>.
+                        </div>
+                    </div>
+                    <div class="item-block">
+                        <div class="item-title">Complex Aggregation</div>
+                        <div class="item-desc">League table required processing 380 matches. Chose Python-based aggregation over complex SQL for better readability and maintainability.</div>
+                    </div>
+                    <div class="item-block">
+                        <div class="item-title">Test Isolation</div>
+                        <div class="item-desc">Tests initially interfered with each other due to shared state. Solved by implementing per-test database creation/teardown in fixtures.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="info-column">
+                <div class="column-header">
+                    <i class="fas fa-rocket"></i> Future Improvements
+                </div>
+                <div class="column-content">
+                    <div class="item-block">
+                        <div class="item-title">Database Migrations</div>
+                        <div class="item-desc">Implement <span class="code-tag">Alembic</span> for safe, version-controlled database schema changes over time.</div>
+                    </div>
+                    <div class="item-block">
+                        <div class="item-title">Redis Caching</div>
+                        <div class="item-desc">Cache expensive analytics endpoints (like the league table) to significantly improve response times under heavy load.</div>
+                    </div>
+                    <div class="item-block">
+                        <div class="item-title">Live Data Integration</div>
+                        <div class="item-desc">Integrate with external APIs (e.g., Sportmonks) via background tasks to keep the database automatically updated.</div>
+                    </div>
+                    <div class="item-block">
+                        <div class="item-title">Rate Limiting</div>
+                        <div class="item-desc">Implement IP-based or token-based rate limiting to prevent abuse in a production environment.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="info-column">
+                <div class="column-header">
+                    <i class="fas fa-robot"></i> GenAI Usage
+                </div>
+                <div class="column-content">
+                    <div class="highlight-green">Declaration Category: GREEN</div>
+                    <div style="margin-bottom: 12px;">
+                        <div class="stat-row">
+                            <span class="stat-label">Data Seeding</span>
+                            <span class="stat-value">100%</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Testing Suite</span>
+                            <span class="stat-value">90%</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Code Generation</span>
+                            <span class="stat-value">80%</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Documentation</span>
+                            <span class="stat-value">70%</span>
+                        </div>
+                    </div>
+                    <div class="item-block" style="border-left-color: #059669;">
+                        <div class="item-title">Human Oversight</div>
+                        <div class="item-desc">AI significantly accelerated development, but human oversight was critical for architectural decisions, debugging (e.g., bcrypt issue), and ensuring code quality.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

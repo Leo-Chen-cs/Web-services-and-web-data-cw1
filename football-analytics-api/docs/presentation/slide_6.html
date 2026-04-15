@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600&family=Inter:wght@400&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        .slide-container {
+            width: 1280px;
+            min-height: 720px;
+            background-color: #F4F4F5;
+            font-family: 'Inter', sans-serif;
+            color: #3F3F46;
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            grid-template-rows: 80px 1fr;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Structural Borders */
+        .grid-line-v { position: absolute; top: 0; bottom: 0; width: 1px; background-color: rgba(63, 63, 70, 0.1); z-index: 1; }
+        .grid-line-h { position: absolute; left: 0; right: 0; height: 1px; background-color: rgba(63, 63, 70, 0.1); z-index: 1; }
+        
+        /* Header */
+        .slide-header {
+            grid-column: 1 / 13;
+            grid-row: 1 / 2;
+            border-bottom: 1px solid #3F3F46;
+            background-color: #ffffff;
+            display: flex;
+            align-items: center;
+            padding: 0 40px;
+            z-index: 10;
+        }
+        .header-path {
+            font-family: 'Space Grotesk', monospace;
+            font-size: 20px;
+            color: #2563EB;
+            margin-right: 15px;
+        }
+        .header-title {
+            font-family: 'Space Grotesk', monospace;
+            font-size: 32px;
+            font-weight: 600;
+            color: #18181B;
+        }
+        
+        /* Content Area */
+        .content-area {
+            grid-column: 1 / 13;
+            grid-row: 2 / 3;
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            padding: 24px; /* reduced from 40 */
+            gap: 24px; /* reduced from 40 */
+            z-index: 10;
+        }
+        
+        /* Left Column: Repo Structure */
+        .repo-structure {
+            grid-column: 1 / 6;
+            border: 1px solid #3F3F46;
+            background-color: #18181B;
+            color: #F4F4F5;
+            padding: 8px; /* reduced from 20 */
+            font-family: 'Space Grotesk', monospace;
+            font-size: 16px;
+            line-height: 1.6; /* slightly reduced */
+            position: relative;
+        }
+        
+        .repo-header {
+            border-bottom: 1px solid #3F3F46;
+            padding-bottom: 6px; /* reduced */
+            margin-bottom: 8px; /* reduced */
+            color: #059669;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .tree-line {
+            display: flex;
+            align-items: center;
+        }
+        
+        .tree-line i {
+            margin-right: 10px;
+            width: 16px;
+            text-align: center;
+        }
+        
+        .tree-line.folder { color: #2563EB; }
+        .tree-line.file { color: #F4F4F5; }
+        .tree-line.highlight { color: #059669; font-weight: bold; }
+        
+        .indent-1 { margin-left: 18px; }
+        .indent-2 { margin-left: 34px; }
+        
+        /* Right Column: Text Content */
+        .text-content {
+            grid-column: 6 / 13;
+            display: flex;
+            flex-direction: column;
+            gap: 16px; /* reduced from 30 */
+            justify-content: center;
+        }
+        
+        .workflow-item {
+            position: relative;
+            padding-left: 16px; /* reduced from 25 */
+            border-left: 2px solid #2563EB;
+        }
+        
+        .workflow-title {
+            font-family: 'Space Grotesk', monospace;
+            font-size: 24px;
+            font-weight: 600;
+            color: #18181B;
+            margin-bottom: 6px; /* reduced */
+            display: flex;
+            align-items: center;
+        }
+        
+        .workflow-title i {
+            margin-right: 10px;
+            color: #059669;
+        }
+        
+        .workflow-desc {
+            font-size: 18px;
+            line-height: 1.6;
+            color: #3F3F46;
+        }
+        
+        .highlight-block {
+            background-color: #059669;
+            color: white;
+            padding: 0 6px;
+            display: inline-block;
+            font-family: 'Space Grotesk', monospace;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+        <!-- Background Grid Lines -->
+        <div class="grid-line-v" style="left: 8.33%;"></div>
+        <div class="grid-line-v" style="left: 16.66%;"></div>
+        <div class="grid-line-v" style="left: 25%;"></div>
+        <div class="grid-line-v" style="left: 33.33%;"></div>
+        <div class="grid-line-v" style="left: 41.66%;"></div>
+        <div class="grid-line-v" style="left: 50%;"></div>
+        <div class="grid-line-v" style="left: 58.33%;"></div>
+        <div class="grid-line-v" style="left: 66.66%;"></div>
+        <div class="grid-line-v" style="left: 75%;"></div>
+        <div class="grid-line-v" style="left: 83.33%;"></div>
+        <div class="grid-line-v" style="left: 91.66%;"></div>
+        
+        <div class="grid-line-h" style="top: 20%;"></div>
+        <div class="grid-line-h" style="top: 40%;"></div>
+        <div class="grid-line-h" style="top: 60%;"></div>
+        <div class="grid-line-h" style="top: 80%;"></div>
+
+        <!-- Header -->
+        <div class="slide-header">
+            <span class="header-path">~/workflow/</span>
+            <h1 class="header-title">Version Control Practices Demonstrate Consistent Development Workflow</h1>
+        </div>
+        
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- Left Column: Repo Structure -->
+            <div class="repo-structure">
+                <div class="repo-header">
+                    <span><i class="fab fa-git-alt"></i> repository_tree</span>
+                    <span>main</span>
+                </div>
+                <div class="tree-line folder"><i class="fas fa-folder-open"></i> football-analytics-api/</div>
+                <div class="tree-line folder indent-1"><i class="fas fa-folder"></i> app/</div>
+                <div class="tree-line file indent-2"><i class="fab fa-python"></i> main.py</div>
+                <div class="tree-line folder indent-2"><i class="fas fa-folder"></i> routers/</div>
+                <div class="tree-line folder indent-2"><i class="fas fa-folder"></i> models/</div>
+                <div class="tree-line folder indent-2"><i class="fas fa-folder"></i> schemas/</div>
+                <div class="tree-line folder indent-1"><i class="fas fa-folder"></i> tests/</div>
+                <div class="tree-line file indent-2"><i class="fab fa-python"></i> conftest.py</div>
+                <div class="tree-line file indent-2"><i class="fab fa-python"></i> test_analytics.py</div>
+                <div class="tree-line folder indent-1"><i class="fas fa-folder"></i> docs/</div>
+                <div class="tree-line file indent-2 highlight"><i class="fas fa-file-pdf"></i> api_documentation.pdf</div>
+                <div class="tree-line file indent-2 highlight"><i class="fas fa-file-pdf"></i> technical_report.pdf</div>
+                <div class="tree-line file indent-1"><i class="fab fa-markdown"></i> README.md</div>
+                <div class="tree-line file indent-1"><i class="fas fa-file-alt"></i> requirements.txt</div>
+                
+                <div style="margin-top: 12px; border-top: 1px dashed #3F3F46; padding-top: 8px; color: #059669;">
+                    $ git log --oneline -n 3<br>
+                    <span style="color: #F4F4F5;">a1b2c3d Add league table analytics</span>
+                </div>
+            </div>
+            
+            <!-- Right Column: Text Content -->
+            <div class="text-content">
+                <div class="workflow-item">
+                    <div class="workflow-title"><i class="fas fa-code-branch"></i> Incremental Development</div>
+                    <div class="workflow-desc">
+                        The GitHub repository maintains a clear commit history documenting the process from initial project setup through feature implementation to testing and documentation.
+                    </div>
+                </div>
+                
+                <div class="workflow-item">
+                    <div class="workflow-title"><i class="fas fa-box"></i> Atomic Commits</div>
+                    <div class="workflow-desc">
+                        Commits are grouped logically by feature (e.g., <span class="highlight-block">"Add team CRUD endpoints"</span>), ensuring each commit represents a single, cohesive unit of work.
+                    </div>
+                </div>
+                
+                <div class="workflow-item">
+                    <div class="workflow-title"><i class="fas fa-sitemap"></i> Clean Separation of Concerns</div>
+                    <div class="workflow-desc">
+                        The repository structure strictly separates source code (<span class="highlight-block">app/</span>), automated tests (<span class="highlight-block">tests/</span>), documentation (<span class="highlight-block">docs/</span>), and configuration files.
+                    </div>
+                </div>
+                
+                <div class="workflow-item">
+                    <div class="workflow-title"><i class="fas fa-book"></i> Comprehensive Documentation</div>
+                    <div class="workflow-desc">
+                        The <span class="highlight-block">README.md</span> provides complete setup instructions and demo credentials. API documentation is available as both interactive Swagger UI and a detailed PDF reference.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

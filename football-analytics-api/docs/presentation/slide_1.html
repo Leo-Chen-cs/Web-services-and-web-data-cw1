@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600&family=Inter:wght@400&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        .slide-container {
+            width: 1280px;
+            min-height: 720px;
+            background-color: #F4F4F5;
+            font-family: 'Inter', sans-serif;
+            color: #3F3F46;
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            grid-template-rows: repeat(12, 1fr);
+            position: relative;
+            overflow: hidden;
+        }
+        .grid-line-v { position: absolute; top: 0; bottom: 0; width: 1px; background-color: rgba(63,63,70,0.1); }
+        .grid-line-h { position: absolute; left: 0; right: 0; height: 1px; background-color: rgba(63,63,70,0.1); }
+        .editor-window {
+            grid-column: 2 / 12;
+            grid-row: 2 / 10;
+            border: 1px solid #3F3F46;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 6px 6px 0px rgba(63, 63, 70, 0.1);
+            position: relative;
+            z-index: 10;
+        }
+        .editor-header {
+            height: 36px;
+            border-bottom: 1px solid #3F3F46;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            background-color: #F4F4F5;
+        }
+        .editor-dots { display: flex; gap: 8px; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid #3F3F46; }
+        .dot.red { background-color: #ff5f56; }
+        .dot.yellow { background-color: #ffbd2e; }
+        .dot.green { background-color: #27c93f; }
+        .editor-title-bar { margin-left: 20px; font-family: 'Space Grotesk', monospace; font-size: 14px; color: #3F3F46; }
+        /* Editor Content - keep top padding but reduce bottom padding */
+        .editor-content {
+            flex: 1;
+            padding: 30px 30px 12px; /* keep top padding for title consistency */
+            display: flex;
+            position: relative;
+        }
+        .line-numbers {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 40px;
+            border-right: 1px solid rgba(63, 63, 70, 0.2);
+            background-color: #F4F4F5;
+            padding-top: 30px;
+            text-align: center;
+            font-family: 'Space Grotesk', monospace;
+            color: rgba(63, 63, 70, 0.4);
+            font-size: 16px;
+            line-height: 2;
+        }
+        /* Layout refresh: place title and metadata side-by-side to save vertical space */
+        .content-body { display: flex; gap: 24px; width: 100%; margin-left: 60px; }
+        .title-wrap { flex: 1; }
+        .main-title {
+            font-family: 'Space Grotesk', monospace;
+            font-size: 64px;
+            font-weight: 600;
+            color: #18181B;
+            line-height: 1.1;
+            margin-bottom: 0; /* removed extra bottom margin */
+        }
+        .highlight-block { background-color: #059669; color: white; padding: 0 10px; display: inline-block; }
+        .side-wrap { width: 360px; display: flex; flex-direction: column; justify-content: flex-start; }
+        .subtitle {
+            font-family: 'Space Grotesk', monospace;
+            font-size: 32px;
+            font-weight: 600;
+            color: #2563EB;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+        .subtitle::before { content: '>'; margin-right: 12px; color: #3F3F46; }
+        .details {
+            font-size: 20px;
+            color: #3F3F46;
+            border-left: 2px dashed #2563EB;
+            padding-left: 10px;
+        }
+        .details-item { margin-bottom: 6px; display: flex; align-items: center; }
+        .details-item i { margin-right: 8px; color: #059669; font-size: 16px; }
+        .decor-code {
+            margin-top: 12px;
+            font-family: 'Space Grotesk', monospace;
+            font-size: 14px;
+            color: rgba(63, 63, 70, 0.3);
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+        <div class="grid-line-v" style="left: 8.33%;"></div>
+        <div class="grid-line-v" style="left: 16.66%;"></div>
+        <div class="grid-line-v" style="left: 25%;"></div>
+        <div class="grid-line-v" style="left: 33.33%;"></div>
+        <div class="grid-line-v" style="left: 50%;"></div>
+        <div class="grid-line-v" style="left: 66.66%;"></div>
+        <div class="grid-line-v" style="left: 75%;"></div>
+        <div class="grid-line-v" style="left: 83.33%;"></div>
+        <div class="grid-line-v" style="left: 91.66%;"></div>
+        <div class="grid-line-h" style="top: 16.66%;"></div>
+        <div class="grid-line-h" style="top: 33.33%;"></div>
+        <div class="grid-line-h" style="top: 50%;"></div>
+        <div class="grid-line-h" style="top: 66.66%;"></div>
+        <div class="grid-line-h" style="top: 83.33%;"></div>
+
+        <div class="editor-window">
+            <div class="editor-header">
+                <div class="editor-dots">
+                    <div class="dot red"></div>
+                    <div class="dot yellow"></div>
+                    <div class="dot green"></div>
+                </div>
+                <div class="editor-title-bar">main.py - football-analytics-api</div>
+            </div>
+            <div class="editor-content">
+                <div class="line-numbers">
+                    1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9
+                </div>
+                <div class="content-body">
+                    <div class="title-wrap">
+                        <h1 class="main-title">
+                            Football Analytics <span class="highlight-block">API</span><br>
+                            A Comprehensive Premier League Data Analysis Platform
+                        </h1>
+                    </div>
+                    <div class="side-wrap">
+                        <h2 class="subtitle">XJCO3011 - Web Services and Web Data | Coursework 1</h2>
+                        <div class="details">
+                            <div class="details-item">
+                                <i class="fas fa-project-diagram"></i>
+                                <span>Individual Web Services API Development Project</span>
+                            </div>
+                            <div class="details-item">
+                                <i class="far fa-calendar-alt"></i>
+                                <span>April 2026</span>
+                            </div>
+                        </div>
+                        <div class="decor-code">
+                            status: 200 OK<br>
+                            time: 45ms<br>
+                            version: 1.0.0
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
