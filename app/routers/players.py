@@ -3,9 +3,10 @@ Player CRUD endpoints.
 Provides full Create, Read, Update, Delete operations for football players.
 """
 
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
-from typing import Optional
 from app.database import get_db
 from app.models.player import Player
 from app.models.team import Team
@@ -14,6 +15,14 @@ from app.utils.auth import require_auth
 from app.models.user import User
 
 router = APIRouter(prefix="/players", tags=["Players"])
+
+VALID_PLAYER_SORT_FIELDS = {
+    "name": Player.name,
+    "goals": Player.goals,
+    "assists": Player.assists,
+    "appearances": Player.appearances,
+    "market_value_millions": Player.market_value_millions,
+}
 
 
 @router.get("/", response_model=PlayerListResponse, summary="List all players")
@@ -48,7 +57,18 @@ def list_players(
         query = query.filter(Player.goals >= min_goals)
     
     # Sorting
-    sort_column = getattr(Player, sort_by, Player.name)
+    if sort_by not in VALID_PLAYER_SORT_FIELDS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid sort_by field. Choose from: {', '.join(VALID_PLAYER_SORT_FIELDS)}"
+        )
+    if sort_order not in {"asc", "desc"}:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid sort_order. Choose 'asc' or 'desc'"
+        )
+
+    sort_column = VALID_PLAYER_SORT_FIELDS[sort_by]
     if sort_order == "desc":
         query = query.order_by(sort_column.desc())
     else:

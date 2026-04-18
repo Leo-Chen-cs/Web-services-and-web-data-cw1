@@ -1,11 +1,14 @@
 """Pydantic schemas for Team endpoints."""
 
-from pydantic import BaseModel, Field
-from typing import Optional, List
 from datetime import datetime
+from typing import List, Optional
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class TeamBase(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
     name: str = Field(..., min_length=1, max_length=100, description="Team name")
     short_name: Optional[str] = Field(None, max_length=10, description="Short name / abbreviation")
     founded_year: Optional[int] = Field(None, ge=1800, le=2026, description="Year the club was founded")
@@ -34,12 +37,11 @@ class TeamUpdate(BaseModel):
 
 
 class TeamResponse(TeamBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
-
-    class Config:
-        from_attributes = True
 
 
 class TeamListResponse(BaseModel):

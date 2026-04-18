@@ -1,11 +1,16 @@
 """Pydantic schemas for Player endpoints."""
 
-from pydantic import BaseModel, Field
-from typing import Optional, List
 from datetime import datetime
+from typing import List, Optional
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+VALID_POSITIONS = {"Goalkeeper", "Defender", "Midfielder", "Forward"}
 
 
 class PlayerBase(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
     name: str = Field(..., min_length=1, max_length=100, description="Player full name")
     age: Optional[int] = Field(None, ge=15, le=50, description="Player age")
     nationality: Optional[str] = Field(None, max_length=50, description="Nationality")
@@ -19,6 +24,15 @@ class PlayerBase(BaseModel):
     red_cards: Optional[int] = Field(0, ge=0, description="Red cards received")
     market_value_millions: Optional[float] = Field(None, ge=0, description="Market value in millions")
     team_id: int = Field(..., description="ID of the team the player belongs to")
+
+    @field_validator("position")
+    @classmethod
+    def validate_position(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return value
+        if value not in VALID_POSITIONS:
+            raise ValueError(f"Position must be one of: {', '.join(sorted(VALID_POSITIONS))}")
+        return value
 
 
 class PlayerCreate(PlayerBase):
@@ -42,12 +56,11 @@ class PlayerUpdate(BaseModel):
 
 
 class PlayerResponse(PlayerBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
-
-    class Config:
-        from_attributes = True
 
 
 class PlayerListResponse(BaseModel):

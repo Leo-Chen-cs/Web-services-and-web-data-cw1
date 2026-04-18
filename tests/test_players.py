@@ -34,6 +34,11 @@ class TestListPlayers:
         data = response.json()
         assert data["players"][0]["goals"] >= data["players"][1]["goals"]
 
+    def test_list_players_invalid_sort_field(self, client, sample_players):
+        """Test invalid sort fields return 400 instead of silently falling back."""
+        response = client.get("/api/v1/players/?sort_by=unknown_field")
+        assert response.status_code == 400
+
 
 class TestCreatePlayer:
     """Test POST /players/ endpoint."""

@@ -6,10 +6,16 @@ Handles user registration and login with JWT token generation.
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+
 from app.database import get_db
 from app.models.user import User
 from app.schemas.user import UserCreate, UserResponse, Token
-from app.utils.auth import verify_password, get_password_hash, create_access_token
+from app.utils.auth import (
+    create_access_token,
+    get_password_hash,
+    password_needs_rehash,
+    verify_password,
+)
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -41,7 +47,7 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
     
     user = User(
         username=user_data.username,
-        email=user_data.email,
+        email=str(user_data.email),
         hashed_password=get_password_hash(user_data.password),
     )
     db.add(user)
@@ -70,6 +76,11 @@ def login(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+    if password_needs_rehash(user.hashed_password):
+        user.hashed_password = get_password_hash(form_data.password)
+        db.add(user)
+        db.commit()
     
     if not user.is_active:
         raise HTTPException(

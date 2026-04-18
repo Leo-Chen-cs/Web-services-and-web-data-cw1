@@ -25,12 +25,13 @@ The Football Analytics API is a data-driven web service designed to manage and a
 | Feature | Description |
 |---------|-------------|
 | **CRUD Operations** | Full Create, Read, Update, Delete for Teams, Players, and Matches |
-| **JWT Authentication** | Secure token-based authentication with bcrypt password hashing |
+| **JWT Authentication** | Secure token-based authentication with hash migration support and stronger input validation |
 | **Advanced Analytics** | League tables, team performance, player rankings, head-to-head stats |
 | **Pagination & Filtering** | All list endpoints support pagination, search, and multi-criteria filtering |
 | **Swagger UI** | Auto-generated interactive API documentation |
-| **Comprehensive Testing** | 45 automated tests covering all endpoints and edge cases |
-| **Error Handling** | Consistent HTTP status codes and descriptive error messages |
+| **Comprehensive Testing** | 52 automated tests covering auth, CRUD, analytics, and validation edge cases |
+| **Error Handling** | Consistent HTTP status codes with stricter validation for invalid query/update combinations |
+| **Security Hardening** | Safer CORS defaults, secure response headers, and automatic password hash upgrades |
 
 ## Technology Stack
 
@@ -148,6 +149,8 @@ Interactive API documentation is available via:
 - **Swagger UI**: [http://localhost:8000/docs](http://localhost:8000/docs) - Interactive testing interface
 - **ReDoc**: [http://localhost:8000/redoc](http://localhost:8000/redoc) - Clean reference documentation
 - **PDF Documentation**: See `docs/api_documentation.pdf` in this repository
+- **Rubric Self-Assessment**: See `docs/xjco3011_self_assessment.md`
+- **GenAI Usage Appendix**: See `docs/genai_usage_appendix.md`
 
 ## Authentication
 
@@ -247,7 +250,7 @@ python -m pytest tests/ -v --tb=short
 python -m pytest tests/test_teams.py -v
 ```
 
-**Test Results**: 45 tests passing, covering authentication, CRUD operations, analytics, error handling, and edge cases.
+**Test Results**: 52 tests passing, covering authentication, CRUD operations, analytics, validation, error handling, and edge cases.
 
 ## Data Sources
 

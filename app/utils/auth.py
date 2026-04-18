@@ -1,54 +1,57 @@
-"""
-Authentication utilities using JWT tokens and bcrypt password hashing.
-Implements industry-standard security practices for API authentication.
-"""
-
-from datetime import datetime, timedelta
+import os
+import logging
+from datetime import datetime, timedelta, timezone
 from typing import Optional
-from jose import JWTError, jwt
-from passlib.context import CryptContext
+
+import bcrypt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
+from passlib.context import CryptContext
 from sqlalchemy.orm import Session
+
 from app.database import get_db
 from app.models.user import User
-import os
+
+logger = logging.getLogger(__name__)
 
 # Security configuration
 SECRET_KEY = os.getenv("SECRET_KEY", "a-very-secret-key-change-in-production-2024")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
-# Password hashing context
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Password hashing context.
+# New passwords use PBKDF2-SHA256 to avoid bcrypt backend compatibility
+# issues while still supporting existing bcrypt hashes during verification.
+pwd_context = CryptContext(
+    schemes=["pbkdf2_sha256", "bcrypt"],
+    deprecated="auto",
+)
 
 # OAuth2 scheme
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
 
+if SECRET_KEY == "a-very-secret-key-change-in-production-2024":
+    logger.warning("Using the default SECRET_KEY. Set SECRET_KEY in production.")
+
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify a plain password against a hashed password.
-    
-    Note: bcrypt has a 72-byte limit on passwords. Passwords longer than
-    72 bytes are truncated, which can cause verification failures.
-    """
-    # Bcrypt has a 72-byte limit, truncate if necessary
-    if len(plain_password.encode('utf-8')) > 72:
-        plain_password = plain_password[:72]
-    try:
-        return pwd_context.verify(plain_password, hashed_password)
-    except ValueError as e:
-        # Handle bcrypt backend errors gracefully
-        if "password cannot be longer than 72 bytes" in str(e):
-            # Truncate and retry
-            plain_password = plain_password[:72]
-            return pwd_context.verify(plain_password, hashed_password)
-        raise
+    """Verify a plain password against a stored hash."""
+    if hashed_password.startswith("$2"):
+        return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
+    return pwd_context.verify(plain_password, hashed_password)
 
 
 def get_password_hash(password: str) -> str:
-    """Hash a password using bcrypt."""
+    """Hash a password using the preferred secure scheme."""
     return pwd_context.hash(password)
+
+
+def password_needs_rehash(hashed_password: str) -> bool:
+    """Return True when a stored password hash should be upgraded."""
+    if hashed_password.startswith("$2"):
+        return True
+    return pwd_context.needs_update(hashed_password)
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
@@ -63,8 +66,9 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
         Encoded JWT token string
     """
     to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
-    to_encode.update({"exp": expire})
+    now = datetime.now(timezone.utc)
+    expire = now + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    to_encode.update({"exp": expire, "iat": now})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 

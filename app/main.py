@@ -12,12 +12,14 @@ Features:
 - Comprehensive error handling
 """
 
+from contextlib import asynccontextmanager
+import logging
+import os
+import time
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from contextlib import asynccontextmanager
-import time
-import logging
 
 from app.database import init_db, SessionLocal
 from app.routers import teams, players, matches, auth, analytics
@@ -26,6 +28,15 @@ from app.services.seed_data import seed_database
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+def get_allowed_origins() -> list[str]:
+    """Read allowed CORS origins from env or use safe local defaults."""
+    raw_origins = os.getenv(
+        "CORS_ALLOW_ORIGINS",
+        "http://localhost,http://localhost:3000,http://127.0.0.1,http://127.0.0.1:3000",
+    )
+    return [origin.strip() for origin in raw_origins.split(",") if origin.strip()]
 
 
 @asynccontextmanager
@@ -93,7 +104,7 @@ To authenticate:
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=get_allowed_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -107,6 +118,9 @@ async def add_process_time_header(request: Request, call_next):
     response = await call_next(request)
     process_time = time.time() - start_time
     response.headers["X-Process-Time"] = str(round(process_time, 4))
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "no-referrer"
     return response
 
 

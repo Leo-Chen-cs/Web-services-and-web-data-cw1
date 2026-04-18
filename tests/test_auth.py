@@ -2,6 +2,8 @@
 
 import pytest
 
+from app.models.user import User
+
 
 class TestRegister:
     """Test user registration endpoint."""
@@ -46,6 +48,15 @@ class TestRegister:
         })
         assert response.status_code == 422
 
+    def test_register_password_requires_letters_and_numbers(self, client):
+        """Test registration rejects weak passwords without digits."""
+        response = client.post("/api/v1/auth/register", json={
+            "username": "newuser",
+            "email": "new@example.com",
+            "password": "passwordonly",
+        })
+        assert response.status_code == 422
+
 
 class TestLogin:
     """Test user login endpoint."""
@@ -76,3 +87,23 @@ class TestLogin:
             "password": "password123",
         })
         assert response.status_code == 401
+
+    def test_login_rehashes_legacy_password_hash(self, client, db_session):
+        """Test successful login upgrades legacy bcrypt hashes."""
+        user = User(
+            username="legacyuser",
+            email="legacy@example.com",
+            hashed_password="$2b$12$abqR.Lz1GMgZooA7Sqa4o.b4sI/Ky4N..IhhN45ySDTEeHprgYKGa",
+            is_admin=False,
+        )
+        db_session.add(user)
+        db_session.commit()
+
+        response = client.post("/api/v1/auth/login", data={
+            "username": "legacyuser",
+            "password": "legacypass1",
+        })
+        assert response.status_code == 200
+
+        db_session.refresh(user)
+        assert user.hashed_password.startswith("$pbkdf2-sha256$")

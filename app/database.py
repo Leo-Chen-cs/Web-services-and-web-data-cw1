@@ -3,10 +3,10 @@ Database configuration and session management.
 Uses SQLAlchemy with SQLite for lightweight, portable data storage.
 """
 
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
 import os
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import declarative_base, sessionmaker
 
 # Database URL - SQLite for development, easily swappable for production
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./data/football_analytics.db")

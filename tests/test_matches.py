@@ -27,6 +27,11 @@ class TestListMatches:
         data = response.json()
         assert data["total"] == 2  # Team Alpha plays in 2 matches
 
+    def test_list_matches_invalid_date_range(self, client, sample_matches):
+        """Test invalid date ranges return 400."""
+        response = client.get("/api/v1/matches/?date_from=2023-09-01&date_to=2023-08-01")
+        assert response.status_code == 400
+
 
 class TestCreateMatch:
     """Test POST /matches/ endpoint."""
@@ -63,3 +68,22 @@ class TestDeleteMatch:
         """Test deleting a match."""
         response = client.delete(f"/api/v1/matches/{sample_matches[0].id}", headers=auth_headers)
         assert response.status_code == 204
+
+
+class TestUpdateMatch:
+    """Test PUT /matches/{match_id} endpoint."""
+
+    def test_update_match_same_team_rejected(self, client, auth_headers, sample_matches, sample_teams):
+        """Test updating a match with identical home/away teams returns 400."""
+        response = client.put(f"/api/v1/matches/{sample_matches[0].id}", json={
+            "home_team_id": sample_teams[0].id,
+            "away_team_id": sample_teams[0].id,
+        }, headers=auth_headers)
+        assert response.status_code == 400
+
+    def test_update_match_invalid_away_team(self, client, auth_headers, sample_matches):
+        """Test updating a match to a missing away team returns 404."""
+        response = client.put(f"/api/v1/matches/{sample_matches[0].id}", json={
+            "away_team_id": 999,
+        }, headers=auth_headers)
+        assert response.status_code == 404

@@ -3,10 +3,11 @@ Match CRUD endpoints.
 Provides full Create, Read, Update, Delete operations for football matches.
 """
 
+from datetime import date
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from typing import Optional
-from datetime import date
 from app.database import get_db
 from app.models.match import Match
 from app.models.team import Team
@@ -47,8 +48,14 @@ def list_matches(
         query = query.filter(Match.match_date <= date_to)
     if matchday:
         query = query.filter(Match.matchday == matchday)
+
+    if date_from and date_to and date_from > date_to:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="date_from cannot be later than date_to"
+        )
     
-    query = query.order_by(Match.match_date.desc())
+    query = query.order_by(Match.match_date.desc(), Match.id.desc())
     
     total = query.count()
     matches = query.offset((page - 1) * page_size).limit(page_size).all()
@@ -98,7 +105,7 @@ def create_match(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Away team with id {match_data.away_team_id} not found"
         )
-    
+
     if match_data.home_team_id == match_data.away_team_id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -132,6 +139,31 @@ def update_match(
         )
     
     update_data = match_data.model_dump(exclude_unset=True)
+
+    home_team_id = update_data.get("home_team_id", match.home_team_id)
+    away_team_id = update_data.get("away_team_id", match.away_team_id)
+
+    if home_team_id == away_team_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Home team and away team cannot be the same"
+        )
+
+    if "home_team_id" in update_data:
+        home_team = db.query(Team).filter(Team.id == home_team_id).first()
+        if not home_team:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Home team with id {home_team_id} not found"
+            )
+    if "away_team_id" in update_data:
+        away_team = db.query(Team).filter(Team.id == away_team_id).first()
+        if not away_team:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Away team with id {away_team_id} not found"
+            )
+
     for field, value in update_data.items():
         setattr(match, field, value)
     

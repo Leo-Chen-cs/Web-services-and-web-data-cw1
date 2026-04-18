@@ -4,6 +4,7 @@ Provides full Create, Read, Update, Delete operations for football teams.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from typing import Optional
 from app.database import get_db
@@ -41,6 +42,7 @@ def list_teams(
         query = query.filter(Team.league == league)
     if city:
         query = query.filter(Team.city.ilike(f"%{city}%"))
+    query = query.order_by(Team.name.asc())
     
     total = query.count()
     teams = query.offset((page - 1) * page_size).limit(page_size).all()
@@ -111,6 +113,19 @@ def update_team(
         )
     
     update_data = team_data.model_dump(exclude_unset=True)
+
+    if "name" in update_data:
+        existing = (
+            db.query(Team)
+            .filter(func.lower(Team.name) == update_data["name"].lower(), Team.id != team_id)
+            .first()
+        )
+        if existing:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Team with name '{update_data['name']}' already exists"
+            )
+
     for field, value in update_data.items():
         setattr(team, field, value)
     

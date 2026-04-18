@@ -112,6 +112,13 @@ class TestUpdateTeam:
         }, headers=auth_headers)
         assert response.status_code == 404
 
+    def test_update_team_duplicate_name(self, client, auth_headers, sample_teams):
+        """Test renaming a team to an existing name returns 409."""
+        response = client.put(f"/api/v1/teams/{sample_teams[1].id}", json={
+            "name": sample_teams[0].name,
+        }, headers=auth_headers)
+        assert response.status_code == 409
+
 
 class TestDeleteTeam:
     """Test DELETE /teams/{team_id} endpoint."""
