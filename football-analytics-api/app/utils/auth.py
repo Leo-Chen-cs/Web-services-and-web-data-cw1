@@ -27,8 +27,23 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=F
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify a plain password against a hashed password."""
-    return pwd_context.verify(plain_password, hashed_password)
+    """Verify a plain password against a hashed password.
+    
+    Note: bcrypt has a 72-byte limit on passwords. Passwords longer than
+    72 bytes are truncated, which can cause verification failures.
+    """
+    # Bcrypt has a 72-byte limit, truncate if necessary
+    if len(plain_password.encode('utf-8')) > 72:
+        plain_password = plain_password[:72]
+    try:
+        return pwd_context.verify(plain_password, hashed_password)
+    except ValueError as e:
+        # Handle bcrypt backend errors gracefully
+        if "password cannot be longer than 72 bytes" in str(e):
+            # Truncate and retry
+            plain_password = plain_password[:72]
+            return pwd_context.verify(plain_password, hashed_password)
+        raise
 
 
 def get_password_hash(password: str) -> str:
