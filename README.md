@@ -5,11 +5,13 @@ A comprehensive RESTful API for Premier League football data analysis, built wit
 ## Table of Contents
 
 - [Project Overview](#project-overview)
+- [Repository](#repository)
 - [Technology Stack](#technology-stack)
 - [Project Structure](#project-structure)
 - [Setup and Installation](#setup-and-installation)
 - [Running the Application](#running-the-application)
 - [API Documentation](#api-documentation)
+- [Presentation Slides](#presentation-slides)
 - [Authentication](#authentication)
 - [API Endpoints Summary](#api-endpoints-summary)
 - [Testing](#testing)
@@ -20,6 +22,21 @@ A comprehensive RESTful API for Premier League football data analysis, built wit
 
 The Football Analytics API is a data-driven web service designed to manage and analyse Premier League football statistics. It integrates a curated dataset of 20 Premier League teams, 27 key players, and 380 simulated match records for the 2023-2024 season. The API follows RESTful design principles and implements industry-standard authentication, error handling, and documentation practices.
 
+### Core Data Model
+
+- **Teams**: football clubs with metadata such as city, stadium, manager, and budget
+- **Players**: footballers linked to teams, with position and performance statistics
+- **Matches**: fixtures between two teams, including scorelines and match statistics
+- **Users**: authenticated accounts for protected write operations
+
+### Main Endpoint Groups
+
+- `/api/v1/auth` for registration and JWT login
+- `/api/v1/teams` for team CRUD operations
+- `/api/v1/players` for player CRUD operations, filtering, and sorting
+- `/api/v1/matches` for match CRUD operations and date/team filtering
+- `/api/v1/analytics` for league tables, team performance, player rankings, head-to-head, and season summary
+
 ### Key Features
 
 | Feature | Description |
@@ -29,9 +46,23 @@ The Football Analytics API is a data-driven web service designed to manage and a
 | **Advanced Analytics** | League tables, team performance, player rankings, head-to-head stats |
 | **Pagination & Filtering** | All list endpoints support pagination, search, and multi-criteria filtering |
 | **Swagger UI** | Auto-generated interactive API documentation |
-| **Comprehensive Testing** | 52 automated tests covering auth, CRUD, analytics, and validation edge cases |
+| **Comprehensive Testing** | 78 automated tests covering auth, CRUD, analytics, validation, documentation, and regression edge cases |
 | **Error Handling** | Consistent HTTP status codes with stricter validation for invalid query/update combinations |
 | **Security Hardening** | Safer CORS defaults, secure response headers, and automatic password hash upgrades |
+
+## Repository
+
+- **Public GitHub Repository**: [https://github.com/Leo-Chen-cs/Web-services-and-web-data-cw1](https://github.com/Leo-Chen-cs/Web-services-and-web-data-cw1)
+- **Main Branch**: [https://github.com/Leo-Chen-cs/Web-services-and-web-data-cw1/tree/main](https://github.com/Leo-Chen-cs/Web-services-and-web-data-cw1/tree/main)
+
+This repository contains:
+
+- Version-controlled source code with commit history
+- `requirements.txt`
+- API documentation PDF
+- Technical report PDF
+- Presentation slides in both PDF and PPTX format
+- Automated test suite
 
 ## Technology Stack
 
@@ -44,6 +75,12 @@ The Football Analytics API is a data-driven web service designed to manage and a
 | **Password Hashing** | bcrypt (passlib) | Industry-standard adaptive hashing algorithm |
 | **Validation** | Pydantic v2 | Type-safe request/response validation with automatic schema generation |
 | **Testing** | pytest + httpx | Comprehensive test framework with async HTTP client support |
+
+### Runtime Environment
+
+- **Python Version**: Python 3.10+ recommended
+- **Framework**: FastAPI
+- **Database**: SQLite
 
 ## Project Structure
 
@@ -105,8 +142,8 @@ football-analytics-api/
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/YOUR_USERNAME/football-analytics-api.git
-   cd football-analytics-api
+   git clone https://github.com/Leo-Chen-cs/Web-services-and-web-data-cw1.git
+   cd Web-services-and-web-data-cw1
    ```
 
 2. **Create a virtual environment (recommended):**
@@ -148,9 +185,16 @@ Interactive API documentation is available via:
 
 - **Swagger UI**: [http://localhost:8000/docs](http://localhost:8000/docs) - Interactive testing interface
 - **ReDoc**: [http://localhost:8000/redoc](http://localhost:8000/redoc) - Clean reference documentation
-- **PDF Documentation**: See `docs/api_documentation.pdf` in this repository
-- **Rubric Self-Assessment**: See `docs/xjco3011_self_assessment.md`
-- **GenAI Usage Appendix**: See `docs/genai_usage_appendix.md`
+- **API Documentation PDF**: [docs/api_documentation.pdf](https://github.com/Leo-Chen-cs/Web-services-and-web-data-cw1/blob/main/docs/api_documentation.pdf)
+- **Rubric Self-Assessment**: [docs/xjco3011_self_assessment.md](docs/xjco3011_self_assessment.md)
+- **GenAI Usage Appendix**: [docs/genai_usage_appendix.md](docs/genai_usage_appendix.md)
+
+No public deployment URL is currently provided, so the local Swagger/ReDoc URLs above and the GitHub PDF are the primary documentation access points for marking.
+
+## Presentation Slides
+
+- **Slides PDF**: [Football_Analytics_API_-_Technical_Presentation.pdf](https://github.com/Leo-Chen-cs/Web-services-and-web-data-cw1/blob/main/docs/Football_Analytics_API_-_Technical_Presentation.pdf)
+- **Slides PPTX**: [docs/Football_Analytics_API_-_Technical_Presentation.pptx](docs/Football_Analytics_API_-_Technical_Presentation.pptx)
 
 ## Authentication
 
@@ -162,13 +206,13 @@ The API uses **JWT (JSON Web Token)** authentication. Public read endpoints (GET
    ```bash
    curl -X POST http://localhost:8000/api/v1/auth/register \
      -H "Content-Type: application/json" \
-     -d '{"username": "myuser", "email": "user@example.com", "password": "mypassword"}'
+     -d '{"username": "myuser", "email": "user@example.com", "password": "secure123"}'
    ```
 
 2. **Login** to get a token:
    ```bash
    curl -X POST http://localhost:8000/api/v1/auth/login \
-     -d "username=myuser&password=mypassword"
+     -d "username=myuser&password=secure123"
    ```
 
 3. **Use the token** in subsequent requests:
@@ -250,7 +294,7 @@ python -m pytest tests/ -v --tb=short
 python -m pytest tests/test_teams.py -v
 ```
 
-**Test Results**: 52 tests passing, covering authentication, CRUD operations, analytics, validation, error handling, and edge cases.
+**Test Results**: 78 tests passing, covering authentication, CRUD operations, analytics, validation, documentation availability, error handling, and regression edge cases.
 
 ## Data Sources
 
@@ -262,13 +306,19 @@ The API is pre-seeded with data inspired by the **Premier League 2023-2024 seaso
 
 ## Technical Report
 
-The full technical report is available in the `docs/` directory and covers:
+- **Technical Report PDF**: [docs/technical_report.pdf](https://github.com/Leo-Chen-cs/Web-services-and-web-data-cw1/blob/main/docs/technical_report.pdf)
+
+The full technical report covers:
 
 - Architecture and design decisions
 - Technology stack justification
 - Testing methodology
 - Challenges and lessons learned
 - Generative AI declaration
+
+## GenAI Statement
+
+Generative AI was used in a declared and limited support role for debugging, validation hardening, test expansion, and documentation refinement. A fuller disclosure is provided in the technical report and in [docs/genai_usage_appendix.md](docs/genai_usage_appendix.md).
 
 ---
 
