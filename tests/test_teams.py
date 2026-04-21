@@ -141,3 +141,8 @@ class TestDeleteTeam:
         """Test deleting without auth returns 401."""
         response = client.delete(f"/api/v1/teams/{sample_teams[0].id}")
         assert response.status_code == 401
+
+    def test_delete_team_with_matches_returns_conflict(self, client, auth_headers, sample_matches, sample_teams):
+        """Test deleting a team with recorded matches is rejected cleanly."""
+        response = client.delete(f"/api/v1/teams/{sample_teams[0].id}", headers=auth_headers)
+        assert response.status_code == 409

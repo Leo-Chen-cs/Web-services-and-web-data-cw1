@@ -33,6 +33,21 @@ class TestListMatches:
         assert response.status_code == 400
 
 
+class TestGetMatch:
+    """Test GET /matches/{match_id} endpoint."""
+
+    def test_get_match_success(self, client, sample_matches):
+        """Test getting a specific match by ID."""
+        response = client.get(f"/api/v1/matches/{sample_matches[0].id}")
+        assert response.status_code == 200
+        assert response.json()["season"] == "2023-2024"
+
+    def test_get_match_not_found(self, client):
+        """Test getting a missing match returns 404."""
+        response = client.get("/api/v1/matches/999")
+        assert response.status_code == 404
+
+
 class TestCreateMatch:
     """Test POST /matches/ endpoint."""
 
@@ -60,6 +75,54 @@ class TestCreateMatch:
         }, headers=auth_headers)
         assert response.status_code == 400
 
+    def test_create_match_unauthorized(self, client, sample_teams):
+        """Test creating a match without auth returns 401."""
+        response = client.post("/api/v1/matches/", json={
+            "season": "2023-2024",
+            "home_team_id": sample_teams[0].id,
+            "away_team_id": sample_teams[1].id,
+            "home_goals": 1,
+            "away_goals": 1,
+        })
+        assert response.status_code == 401
+
+    def test_create_match_invalid_home_team(self, client, auth_headers, sample_teams):
+        """Test creating a match with a missing home team returns 404."""
+        response = client.post("/api/v1/matches/", json={
+            "season": "2023-2024",
+            "home_team_id": 999,
+            "away_team_id": sample_teams[1].id,
+            "home_goals": 1,
+            "away_goals": 1,
+        }, headers=auth_headers)
+        assert response.status_code == 404
+
+    def test_create_match_invalid_possession_totals(self, client, auth_headers, sample_teams):
+        """Test match schema rejects impossible possession totals."""
+        response = client.post("/api/v1/matches/", json={
+            "season": "2023-2024",
+            "home_team_id": sample_teams[0].id,
+            "away_team_id": sample_teams[1].id,
+            "home_goals": 1,
+            "away_goals": 0,
+            "home_possession": 70,
+            "away_possession": 20,
+        }, headers=auth_headers)
+        assert response.status_code == 422
+
+    def test_create_match_invalid_shots_on_target(self, client, auth_headers, sample_teams):
+        """Test match schema rejects shots on target above total shots."""
+        response = client.post("/api/v1/matches/", json={
+            "season": "2023-2024",
+            "home_team_id": sample_teams[0].id,
+            "away_team_id": sample_teams[1].id,
+            "home_goals": 1,
+            "away_goals": 0,
+            "home_shots": 3,
+            "home_shots_on_target": 4,
+        }, headers=auth_headers)
+        assert response.status_code == 422
+
 
 class TestDeleteMatch:
     """Test DELETE /matches/{match_id} endpoint."""
@@ -68,6 +131,16 @@ class TestDeleteMatch:
         """Test deleting a match."""
         response = client.delete(f"/api/v1/matches/{sample_matches[0].id}", headers=auth_headers)
         assert response.status_code == 204
+
+    def test_delete_match_not_found(self, client, auth_headers):
+        """Test deleting a missing match returns 404."""
+        response = client.delete("/api/v1/matches/999", headers=auth_headers)
+        assert response.status_code == 404
+
+    def test_delete_match_unauthorized(self, client, sample_matches):
+        """Test deleting a match without auth returns 401."""
+        response = client.delete(f"/api/v1/matches/{sample_matches[0].id}")
+        assert response.status_code == 401
 
 
 class TestUpdateMatch:
@@ -87,3 +160,18 @@ class TestUpdateMatch:
             "away_team_id": 999,
         }, headers=auth_headers)
         assert response.status_code == 404
+
+    def test_update_match_invalid_possession_totals(self, client, auth_headers, sample_matches):
+        """Test updating a match with impossible possession totals returns 422."""
+        response = client.put(f"/api/v1/matches/{sample_matches[0].id}", json={
+            "home_possession": 65,
+            "away_possession": 20,
+        }, headers=auth_headers)
+        assert response.status_code == 422
+
+    def test_update_match_unauthorized(self, client, sample_matches):
+        """Test updating a match without auth returns 401."""
+        response = client.put(f"/api/v1/matches/{sample_matches[0].id}", json={
+            "home_goals": 4,
+        })
+        assert response.status_code == 401

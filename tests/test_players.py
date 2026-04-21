@@ -39,6 +39,26 @@ class TestListPlayers:
         response = client.get("/api/v1/players/?sort_by=unknown_field")
         assert response.status_code == 400
 
+    def test_list_players_invalid_sort_order(self, client, sample_players):
+        """Test invalid sort order returns 400."""
+        response = client.get("/api/v1/players/?sort_order=sideways")
+        assert response.status_code == 400
+
+
+class TestGetPlayer:
+    """Test GET /players/{player_id} endpoint."""
+
+    def test_get_player_success(self, client, sample_players):
+        """Test getting a specific player by ID."""
+        response = client.get(f"/api/v1/players/{sample_players[0].id}")
+        assert response.status_code == 200
+        assert response.json()["name"] == "Player One"
+
+    def test_get_player_not_found(self, client):
+        """Test getting a non-existent player returns 404."""
+        response = client.get("/api/v1/players/999")
+        assert response.status_code == 404
+
 
 class TestCreatePlayer:
     """Test POST /players/ endpoint."""
@@ -63,6 +83,23 @@ class TestCreatePlayer:
         }, headers=auth_headers)
         assert response.status_code == 404
 
+    def test_create_player_unauthorized(self, client, sample_teams):
+        """Test creating a player without auth returns 401."""
+        response = client.post("/api/v1/players/", json={
+            "name": "Unauthorized Player",
+            "team_id": sample_teams[0].id,
+        })
+        assert response.status_code == 401
+
+    def test_create_player_invalid_position(self, client, auth_headers, sample_teams):
+        """Test creating a player with an unsupported position returns 422."""
+        response = client.post("/api/v1/players/", json={
+            "name": "Weird Player",
+            "position": "Striker",
+            "team_id": sample_teams[0].id,
+        }, headers=auth_headers)
+        assert response.status_code == 422
+
 
 class TestUpdatePlayer:
     """Test PUT /players/{player_id} endpoint."""
@@ -75,6 +112,20 @@ class TestUpdatePlayer:
         assert response.status_code == 200
         assert response.json()["goals"] == 20
 
+    def test_update_player_invalid_team(self, client, auth_headers, sample_players):
+        """Test moving a player to a missing team returns 404."""
+        response = client.put(f"/api/v1/players/{sample_players[0].id}", json={
+            "team_id": 999,
+        }, headers=auth_headers)
+        assert response.status_code == 404
+
+    def test_update_player_unauthorized(self, client, sample_players):
+        """Test updating a player without auth returns 401."""
+        response = client.put(f"/api/v1/players/{sample_players[0].id}", json={
+            "goals": 20,
+        })
+        assert response.status_code == 401
+
 
 class TestDeletePlayer:
     """Test DELETE /players/{player_id} endpoint."""
@@ -83,3 +134,13 @@ class TestDeletePlayer:
         """Test deleting a player."""
         response = client.delete(f"/api/v1/players/{sample_players[0].id}", headers=auth_headers)
         assert response.status_code == 204
+
+    def test_delete_player_not_found(self, client, auth_headers):
+        """Test deleting a non-existent player returns 404."""
+        response = client.delete("/api/v1/players/999", headers=auth_headers)
+        assert response.status_code == 404
+
+    def test_delete_player_unauthorized(self, client, sample_players):
+        """Test deleting a player without auth returns 401."""
+        response = client.delete(f"/api/v1/players/{sample_players[0].id}")
+        assert response.status_code == 401

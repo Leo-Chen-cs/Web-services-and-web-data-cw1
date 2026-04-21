@@ -8,6 +8,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 from typing import Optional
 from app.database import get_db
+from app.models.match import Match
 from app.models.team import Team
 from app.schemas.team import TeamCreate, TeamUpdate, TeamResponse, TeamListResponse
 from app.utils.auth import get_current_user, require_auth
@@ -143,13 +144,23 @@ def delete_team(
     """
     Delete a team by ID. Requires authentication.
     
-    This will also cascade-delete all associated players.
+    Associated players are cascade-deleted, but teams with recorded matches
+    cannot be removed to preserve historical data integrity.
     """
     team = db.query(Team).filter(Team.id == team_id).first()
     if not team:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Team with id {team_id} not found"
+        )
+
+    has_matches = db.query(Match).filter(
+        (Match.home_team_id == team_id) | (Match.away_team_id == team_id)
+    ).first()
+    if has_matches:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Cannot delete a team that has recorded matches"
         )
     
     db.delete(team)
