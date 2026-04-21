@@ -18,8 +18,8 @@ import os
 import time
 
 from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 
 from app.database import init_db, SessionLocal
 from app.routers import teams, players, matches, auth, analytics
@@ -99,6 +99,7 @@ To authenticate:
         "url": "https://opensource.org/licenses/MIT",
     },
     lifespan=lifespan,
+    redoc_url=None,
 )
 
 # CORS middleware
@@ -168,3 +169,294 @@ def root():
 def health_check():
     """Health check endpoint for monitoring."""
     return {"status": "healthy", "version": "1.0.0"}
+
+
+@app.get("/redoc", include_in_schema=False)
+def offline_redoc():
+    """
+    Offline-friendly API reference page.
+
+    FastAPI's default ReDoc depends on external CDN assets, which can fail in
+    restricted networks. This fallback renders the OpenAPI schema directly so
+    the documentation remains available locally.
+    """
+    schema = app.openapi()
+    info = schema.get("info", {})
+    paths = schema.get("paths", {})
+    servers = schema.get("servers", [])
+    tag_descriptions = {
+        tag.get("name"): tag.get("description", "")
+        for tag in schema.get("tags", [])
+        if isinstance(tag, dict) and tag.get("name")
+    }
+
+    grouped_operations: dict[str, list[dict[str, object]]] = {}
+    for path, methods in sorted(paths.items()):
+        for method, operation in sorted(methods.items()):
+            if method.startswith("x-"):
+                continue
+            tag = (operation.get("tags") or ["Other"])[0]
+            grouped_operations.setdefault(tag, []).append({
+                "method": method.upper(),
+                "path": path,
+                "summary": operation.get("summary") or "No summary provided",
+                "description": operation.get("description") or "",
+                "parameters": operation.get("parameters") or [],
+                "request_body": operation.get("requestBody"),
+                "responses": operation.get("responses") or {},
+            })
+
+    tag_nav = []
+    sections = []
+    for tag, operations in grouped_operations.items():
+        slug = tag.lower().replace(" ", "-").replace("/", "-")
+        tag_nav.append(f'<a href="#{slug}">{tag}</a>')
+        tag_description = tag_descriptions.get(tag, "")
+        cards = []
+        for operation in operations:
+            params_html = ""
+            if operation["parameters"]:
+                param_items = []
+                for param in operation["parameters"]:
+                    schema_info = param.get("schema", {})
+                    schema_type = schema_info.get("type", "object")
+                    required = "required" if param.get("required") else "optional"
+                    location = param.get("in", "query")
+                    description = param.get("description") or "No description"
+                    param_items.append(
+                        "<li>"
+                        f"<strong>{param.get('name')}</strong> "
+                        f"<span class='meta'>{location} · {schema_type} · {required}</span>"
+                        f"<div>{description}</div>"
+                        "</li>"
+                    )
+                params_html = (
+                    "<div class='subsection'><h4>Parameters</h4><ul>"
+                    + "".join(param_items)
+                    + "</ul></div>"
+                )
+
+            request_body = operation["request_body"]
+            request_html = ""
+            if request_body:
+                content = request_body.get("content", {})
+                content_types = ", ".join(content.keys()) or "Unknown"
+                request_html = (
+                    "<div class='subsection'><h4>Request Body</h4>"
+                    f"<div class='meta'>{content_types}</div></div>"
+                )
+
+            response_items = []
+            for status_code, response in operation["responses"].items():
+                description = response.get("description") or "No description"
+                response_items.append(
+                    f"<li><strong>{status_code}</strong> <span>{description}</span></li>"
+                )
+            responses_html = (
+                "<div class='subsection'><h4>Responses</h4><ul>"
+                + "".join(response_items)
+                + "</ul></div>"
+            )
+
+            cards.append(
+                "<article class='endpoint'>"
+                f"<div class='endpoint-head'><span class='method {operation['method'].lower()}'>{operation['method']}</span>"
+                f"<code>{operation['path']}</code></div>"
+                f"<h3>{operation['summary']}</h3>"
+                + (f"<p>{operation['description']}</p>" if operation["description"] else "")
+                + params_html
+                + request_html
+                + responses_html
+                + "</article>"
+            )
+
+        sections.append(
+            f"<section id='{slug}' class='tag-section'>"
+            f"<h2>{tag}</h2>"
+            + (f"<p class='tag-description'>{tag_description}</p>" if tag_description else "")
+            + "".join(cards)
+            + "</section>"
+        )
+
+    server_html = ""
+    if servers:
+        server_items = "".join(f"<li><code>{server.get('url', '')}</code></li>" for server in servers)
+        server_html = f"<div class='panel'><h3>Servers</h3><ul>{server_items}</ul></div>"
+
+    html = f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <title>{info.get("title", "API Documentation")} - API Reference</title>
+      <style>
+        :root {{
+          color-scheme: light;
+          --bg: #f4f6f8;
+          --surface: #ffffff;
+          --surface-alt: #eef2f7;
+          --text: #1d2733;
+          --muted: #5f6b7a;
+          --border: #d9e1ea;
+          --accent: #0f766e;
+          --get: #0f766e;
+          --post: #1d4ed8;
+          --put: #b45309;
+          --delete: #b91c1c;
+          --other: #475569;
+        }}
+        * {{ box-sizing: border-box; }}
+        body {{
+          margin: 0;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+          background: linear-gradient(180deg, #edf2f7 0%, var(--bg) 240px);
+          color: var(--text);
+        }}
+        .hero {{
+          padding: 48px 24px 24px;
+          background: radial-gradient(circle at top left, #d9f3ef 0, transparent 38%),
+                      radial-gradient(circle at top right, #dbeafe 0, transparent 32%);
+        }}
+        .hero-inner, .content {{
+          max-width: 1080px;
+          margin: 0 auto;
+        }}
+        h1, h2, h3, h4 {{ margin: 0 0 12px; }}
+        p {{ margin: 0 0 12px; line-height: 1.6; }}
+        .subtitle {{ color: var(--muted); max-width: 820px; }}
+        .meta-row {{
+          display: flex;
+          flex-wrap: wrap;
+          gap: 12px;
+          margin-top: 18px;
+        }}
+        .panel {{
+          background: rgba(255,255,255,0.88);
+          border: 1px solid var(--border);
+          border-radius: 16px;
+          padding: 16px 18px;
+          backdrop-filter: blur(10px);
+        }}
+        .content {{
+          display: grid;
+          grid-template-columns: 250px minmax(0, 1fr);
+          gap: 24px;
+          padding: 24px;
+        }}
+        .sidebar {{
+          position: sticky;
+          top: 16px;
+          align-self: start;
+        }}
+        .sidebar nav {{
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }}
+        .sidebar a {{
+          text-decoration: none;
+          color: var(--text);
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: 12px;
+          padding: 10px 12px;
+        }}
+        .tag-section {{
+          margin-bottom: 28px;
+        }}
+        .tag-description {{
+          color: var(--muted);
+        }}
+        .endpoint {{
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: 18px;
+          padding: 18px;
+          margin-top: 14px;
+          box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+        }}
+        .endpoint-head {{
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          flex-wrap: wrap;
+          margin-bottom: 12px;
+        }}
+        .method {{
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 72px;
+          padding: 6px 10px;
+          border-radius: 999px;
+          color: white;
+          font-size: 0.82rem;
+          font-weight: 700;
+          letter-spacing: 0.04em;
+        }}
+        .method.get {{ background: var(--get); }}
+        .method.post {{ background: var(--post); }}
+        .method.put {{ background: var(--put); }}
+        .method.delete {{ background: var(--delete); }}
+        .method.patch, .method.options, .method.head {{ background: var(--other); }}
+        code {{
+          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+          background: var(--surface-alt);
+          padding: 2px 8px;
+          border-radius: 8px;
+        }}
+        .subsection {{
+          margin-top: 14px;
+          padding-top: 14px;
+          border-top: 1px solid var(--border);
+        }}
+        .subsection ul {{
+          margin: 8px 0 0;
+          padding-left: 18px;
+        }}
+        .subsection li {{
+          margin-bottom: 8px;
+        }}
+        .meta {{
+          color: var(--muted);
+          font-size: 0.92rem;
+        }}
+        @media (max-width: 900px) {{
+          .content {{
+            grid-template-columns: 1fr;
+          }}
+          .sidebar {{
+            position: static;
+          }}
+        }}
+      </style>
+    </head>
+    <body>
+      <header class="hero">
+        <div class="hero-inner">
+          <h1>{info.get("title", "API Documentation")}</h1>
+          <p class="subtitle">{info.get("description", "").replace("##", "").replace("**", "")}</p>
+          <div class="meta-row">
+            <div class="panel"><strong>Version</strong><br>{info.get("version", "N/A")}</div>
+            <div class="panel"><strong>OpenAPI Schema</strong><br><a href="/openapi.json">/openapi.json</a></div>
+            <div class="panel"><strong>Interactive Docs</strong><br><a href="/docs">/docs</a></div>
+            {server_html}
+          </div>
+        </div>
+      </header>
+      <main class="content">
+        <aside class="sidebar">
+          <div class="panel">
+            <h3>Sections</h3>
+            <nav>{"".join(tag_nav)}</nav>
+          </div>
+        </aside>
+        <div>
+          {"".join(sections)}
+        </div>
+      </main>
+    </body>
+    </html>
+    """
+    return HTMLResponse(html)
